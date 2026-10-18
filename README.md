@@ -11,21 +11,26 @@
 ## 架构
 
 ```text
-主机：Keil / OpenOCD / CMSIS-DAP客户端 / 串口工具
-                  |
-        CH552 USB全速复合设备
-         |                      |
-   EP1 WinUSB Bulk DAP       EP2 CDC数据
-         |                      |
-   USB ISR收包/端点交接     USB OUT -> TX ping-pong -> UART0 TX
-         |                  UART0 RX ISR -> RX ring -> USB IN DMA槽
-   RTX51 DAP独立任务
-         |
-   DAP.C：命令解析、包边界、重试、AP posted-read收尾
-         |
-   SW_DP.C / JTAG_DP.C：SWD状态机与JTAG TAP/扫描
-         |
-   SWD_Byte.C汇编叶 / DAP_SPI.C / IO_Config.H板级引脚
+控制框架：RTX51 Tiny，使用Timer0维护tick、任务等待/唤醒及轮转
+  ├─ Task 0 INIT：系统初始化，创建Task 1/2/3，然后删除自身
+  ├─ Task 1 DAP ：常驻；有请求执行，无可处理请求时等待K_SIG
+  ├─ Task 2 USB ：初始化USB外设，然后删除自身
+  └─ Task 3 UART：初始化UART0/CDC桥接，然后删除自身
+
+运行数据通路（外设ISR不等于RTX任务）：
+  主机USB EP1 -> USB ISR收包/端点交接 -> 缓冲区状态 + isr_send_signal(DAP)
+                                            |
+                                     RTX51 Task 1被唤醒
+                                            |
+                              DAP.C解析/重试/AP posted-read收尾
+                                            |
+                              SW_DP.C / JTAG_DP.C协议状态机
+                                            |
+                         GPIO/汇编 / SPI后端 / IO_Config.H板级引脚
+
+  主机USB EP2 OUT -> TX ping-pong -> UART0 TX ISR
+  UART0 RX ISR -> 128 B RX ring -> USB/Timer1服务 -> EP2 IN DMA槽 -> 主机
+  UART1 SWO RX ISR -> SWO ring -> Task 1中的DAP_SWO_Data -> 主机
 ```
 
 - `Start.C`：24 MHz 时钟、外设与 RTX51 任务初始化。
@@ -45,6 +50,48 @@
 芯片资源为256 B内部RAM、1 KiB XRAM、16 KiB物理Flash；
 用户程序仅允许0x0000..0x37FF，上方ISP BootLoader区不得覆盖。
 USB/UART/RTX的寄存器组、中断嵌套及任务栈受8051约束，RAM统计不等于实测栈余量。
+
+## RTX51 Tiny：本项目的运行框架
+
+RTX51 Tiny 是 Keil 面向8051的轻量任务内核。本项目使用它组织初始化、
+DAP任务的事件等待/唤醒、定时等待、就绪任务轮转和空闲处理，
+不是FreeRTOS，也不是单一裸机轮询主循环。
+
+任务在[Config.H](Application/include/Config.H)中编号，
+[Start.C](Application/Start.C)的INIT任务创建DAP、USB、UART任务。
+USB和UART任务仅执行一次初始化，随即`os_delete_task()`；
+**当前只有DAP是常驻应用任务，不是四个任务一直并行搬运数据。**
+预留的按键/转义任务编号没有在当前启动流程中创建。
+
+USB ISR通过`isr_send_signal(DAP)`通知请求就绪；DAP任务先检查请求/响应缓冲区所有权，
+无可处理请求时执行`os_wait1(K_SIG)`，有请求则在任务上下文运行协议。
+信号可能合并，因此“收到一次信号”不等于“恰好一个USB包”；缓冲区状态及会话epoch才是依据。
+USB ISR只做接收、端点交接及通知，不执行长时间SWD/JTAG传输。
+
+内核配置位于[Conf_tny.A51](Project/Conf_tny.A51)：
+
+| 配置 | 当前值 | 含义 |
+| --- | ---: | --- |
+| 硬件定时器 | Timer0 | 内核tick、等待计时及轮转调度 |
+| INT_CLOCK | 16000 | 内核定时配置值；不是16000 ms，实际时间还依赖芯片定时器时钟 |
+| TIMESHARING | 5 | 五个内核tick的Round-Robin配额；不是任务优先级 |
+| INT_REGBANK | 2 | 内核Timer0使用寄存器组2 |
+| RAMTOP | 0xFF | 内核栈管理的内部RAM上界 |
+| FREE_STACK | 20 | 内核栈检查阈值；不代表已证明有20 B整机最坏情况余量 |
+| CPU_IDLE_CODE | 1 | 没有就绪任务时走内核IDLE路径 |
+
+RTX51 Tiny占用Timer0，**并不替代或接管USB、UART0、UART1、Timer1的全部中断处理**。
+这些ISR仍由应用的C51 `interrupt`函数实现；中断能否抢占由硬件优先级决定，
+不由Task编号决定。当前UART0为高优先级、寄存器组3；USB、Timer1及SWO UART1
+使用低优先级寄存器组1，RTX使用组2，不能随意复用这些寄存器组。
+
+选择RTX是为了把阻塞的调试协议处理与USB快速响应分离，并提供清晰的等待/唤醒边界；
+代价是内核代码、上下文/任务状态及内部RAM栈管理开销。
+CDC的UART字节接收与短包聚合分别依赖UART0/Timer1，不需要等待一次RTX轮转才接收字节。
+SWD/JTAG位时序也不是用`os_wait`生成，外设ISR的抢占仍可能拉长协议边沿间隔。
+因此不能将任务框架本身当成硬件加速，也不能未经对照就把速度差距全部归因于RTX。
+
+更完整的模块、任务与ISR边界见[架构说明](ARCHITECTURE.md)。
 
 ## 性能速览
 
