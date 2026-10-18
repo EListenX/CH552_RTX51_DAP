@@ -1,0 +1,2 @@
+# Preserve the original UTF-8/CP936 bytes and mixed source line endings.
+* -text

@@ -1,0 +1,71 @@
+{
+  "default_target": "SWD_SPI_SWJ",
+  "hardware_verified": false,
+  "targets": [
+    {
+      "target": "SWD_SPI_SWJ",
+      "profile": "config-swd-spi-swj-cdc",
+      "identity": "ssj1",
+      "sha256": "dc04bb4dda38cead202f4c7c11e5eaebc9bdd41f74049ee42f24cbbbe604e5f2",
+      "data": "133.4",
+      "xdata": 887,
+      "code": 13154,
+      "const": 497,
+      "rom": 13651
+    },
+    {
+      "target": "GPIO_SWJ_FULL",
+      "profile": "config-gpio-swj-full",
+      "identity": "gsf1",
+      "sha256": "1f06ed21eb534b43101a81499d567c1293f327e07f61ed6dfa292a225b4698b1",
+      "data": "148.3",
+      "xdata": 1015,
+      "code": 13800,
+      "const": 505,
+      "rom": 14305
+    },
+    {
+      "target": "JTAG_SPI_SWJ",
+      "profile": "config-jtag-spi-swj-reset",
+      "identity": "jsr1",
+      "sha256": "0daa6a729d85cb0191f8be8535c40b8be7529ae4136872ca8268b88a3f157bf8",
+      "data": "142.3",
+      "xdata": 889,
+      "code": 12852,
+      "const": 497,
+      "rom": 13349
+    }
+  ],
+  "source_sha256": {
+    "Application/DAP.C": "df252ac09f4d71e4bab10030553fc9cb29e3ef8ed71aef3241aba46011ece80c",
+    "Application/DAP_SPI.C": "fcca67cba65153e3e2a872be7e7f6e81b7867397bb9e90763271bb4590242622",
+    "Application/include/Board_Config.H": "fc049bf1b52f6bc8868f4405cd8f4ee2df38902aeb645ea13a011d0594f166c4",
+    "Application/include/Board_Presets.H": "fe818eb76c354a3d2870e31fd40083441a4bbc523cdba36fda112c0c9c1f4d0f",
+    "Application/include/Config.H": "4cd8e1c697f8c757bb2b0cfa51bd04b02b4efc8d7b03ebb91cd41666ce51ac80",
+    "Application/include/DAP.H": "6e4282ead5bfa5bf2cf7ec507ac75ea286ac1adfa8bfba6a27154557b29196a6",
+    "Application/include/DAP_Config.H": "601c43d3ad334a798d4e648185d49d3dfb822361aa396877a5e9b6b50c571e94",
+    "Application/include/DAP_SPI.H": "0b1bb6f781236da11f820502d4928f2007a5aa1111ee73e9cdc0d7a65dcde769",
+    "Application/include/IO_Config.H": "21b73075d69c86b739df4ad440e928f9ccd992f27c4454bd87cc6887dc9f705f",
+    "Application/include/SWO.H": "71b9f9fafb4901f487c95ca12a686c931e628eec3f8156f89048dd4acc207518",
+    "Application/include/Uart.H": "f1423ec9603fe4c016751784a73e4305b1e3ec3bcc0dc409073699d9d2c548bb",
+    "Application/include/Usb.H": "89631aad8e67bdbbea4445068a993ca1b354c01affd329c9540a228aebc077da",
+    "Application/include/Usb_Config.H": "546c3696bf4071d0c4ff1077c83c4a35f88cc647320b1f0e1b6dca5e581729ba",
+    "Application/JTAG_DP.C": "6f2edbd89bad8ca48e0e1198ee1dc6c1f051379ab0f1c2bb1a1dd78b2d628d74",
+    "Application/Start.C": "eb8f9608fccbe91fa51e3ba5d1f257d2e9f7e8062ce8673f8575885f2ba3edee",
+    "Application/SW_DP.C": "49b8f69553369f17c60bdf7bbfda6a9fe6b359d97b21be9a7106c370e8792e6a",
+    "Application/SWD_Byte.C": "ccb0b4978b4b7838e8889d2412357e237bf278a332e7725b5511504548d5638e",
+    "Application/SWO.C": "b0fa043adcc2bb3639829bbd2b143f3a2d7bfd1e4a4b8478d58acf9a13fd8890",
+    "Application/Uart.C": "b6e339c8939156ffe867448a2120b586268ad81e66bec386980a93d0e317e254",
+    "Application/Usb.C": "d4d2f81edd4f8f07c9b20295020357a7189d3102917a127db9c0a971481f0c8d",
+    "Library/CH55x_Math.A51": "36276b07e6e620397b1c164c0d8e417f229790cb9a83447075ed5b4e256105c2",
+    "Library/Debug.C": "31c4e51962fb0376473e370c4be143bdb5699965092d147a5b5bc109b469266d",
+    "Library/GPIO.C": "c8d6f31fd0773497810d5216014a482ef557478e1a266c60b53451058a847e93",
+    "Library/include/CH552.H": "20070a1b7ba2d1a50b92f96d6734f7f40a7e1e32b33146b1f57c5547cc41107e",
+    "Library/include/CH55x_Config.H": "df5e34b57c5c0daab287c04b0afe30af27d625b5d4f988cc5b49d8cf66ecfac9",
+    "Library/include/CH55x_Math.H": "808cf4c3989e9b66adedb9ff345bd89b83cf9318259a857a94b4551571708fb5",
+    "Library/include/Debug.H": "e2000dc81dcf27ca9fc304cb895e2cf1ce0828d068d43061f43266658378111f",
+    "Library/include/GPIO.H": "e0aa6cdbfa6a4f9d1e8b4ff37f419742c17c28c037970505b6aa63f286785814",
+    "Project/Conf_tny.A51": "9a1b86b4d447aa321579174b914c384ef897f63d54bbba5a92919af0cdc2974e",
+    "Project/STARTUP.A51": "0298d03e409c9ecb60da335aec3d7a3eee98762c3efd9dd12eab7612c7104011"
+  }
+}

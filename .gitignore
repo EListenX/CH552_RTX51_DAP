@@ -1,0 +1,13 @@
+# Keil build products and per-user settings
+/Project/Objects/
+/Project/Listings/
+*.uvopt
+*.uvoptx
+*.uvgui.*
+*.uvguix.*
+*.bak
+*.build_log.htm
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db
